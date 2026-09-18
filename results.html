@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SiteFind — Results Workspace</title>
+  <link rel="stylesheet" href="results.css" />
+</head>
+<body>
+  <div class="workspace-layout">
+    <!-- Workspace Top Header -->
+    <header class="workspace-header">
+      <div class="header-left">
+        <div class="brand">
+          <img class="brand-mark" src="icons/icon48.png" alt="SiteFind" width="32" height="32" />
+          <div>
+            <h1>SiteFind <span class="workspace-pill">Full Results Workspace</span></h1>
+            <p id="siteMetaText" class="site-meta">Loading audit results…</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div id="scanStatusBadge" class="status-pill warn">In Progress</div>
+        <button id="headerVerifyBtn" class="primary-action-btn" type="button">Verify Again</button>
+        <div class="export-btn-group">
+          <button id="copyUrlsBtn" class="action-btn" type="button" title="Copy the page URLs currently listed">Copy URLs</button>
+          <button id="exportCsvBtn" class="action-btn" type="button">Export CSV</button>
+          <button id="exportJsonBtn" class="action-btn" type="button">Export JSON</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace-main">
+      <!-- Metric Cards -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <label>Total Pages Scanned</label>
+          <span id="metricScanned">0</span>
+        </div>
+        <div class="metric-card highlight-danger">
+          <label>Affected Pages</label>
+          <span id="metricAffected">0</span>
+        </div>
+        <div class="metric-card highlight-success">
+          <label>Clean Pages</label>
+          <span id="metricClean">0</span>
+        </div>
+        <div class="metric-card">
+          <label>Total Stale Matches</label>
+          <span id="metricMatches">0</span>
+        </div>
+        <div class="metric-card">
+          <label>Failed / Blocked</label>
+          <span id="metricFailed">0</span>
+        </div>
+      </section>
+
+      <!-- Verification Diff Banner (if verified) -->
+      <section id="diffSection" class="diff-section hidden">
+        <div class="diff-header">
+          <h3>Verification Comparison</h3>
+          <button id="closeDiffBtn" class="close-btn" type="button" aria-label="Close diff banner">×</button>
+        </div>
+        <div id="diffContent" class="diff-content"></div>
+      </section>
+
+      <!-- Filter and Search Toolbar -->
+      <section class="toolbar-section">
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="workspaceSearchInput" placeholder="Search pages, URLs or matched text..." />
+        </div>
+
+        <div class="filter-controls">
+          <div class="scope-toggle-pills" role="radiogroup">
+            <button type="button" id="toggleAffected" class="toggle-pill active">Affected Only</button>
+            <button type="button" id="toggleAll" class="toggle-pill">All Scanned Pages</button>
+          </div>
+
+          <div class="term-filter-wrap">
+            <label for="workspaceTermFilter">Search Term:</label>
+            <select id="workspaceTermFilter">
+              <option value="">All Search Terms</option>
+            </select>
+          </div>
+
+          <div class="sort-wrap">
+            <label for="sortSelect">Sort by:</label>
+            <select id="sortSelect">
+              <option value="matches_desc">Most Matches</option>
+              <option value="matches_asc">Fewest Matches</option>
+              <option value="url_asc">Page URL (A–Z)</option>
+              <option value="url_desc">Page URL (Z–A)</option>
+            </select>
+          </div>
+
+          <p class="shortcut-hint"><kbd>/</kbd> search · <kbd>Esc</kbd> clear · <kbd>←</kbd> <kbd>→</kbd> pages</p>
+        </div>
+      </section>
+
+      <!-- Dynamic Table Section -->
+      <section class="table-section">
+        <div class="table-wrapper">
+          <table class="workspace-table" id="workspaceTable">
+            <thead id="workspaceTableHead"></thead>
+            <tbody id="workspaceTableBody"></tbody>
+          </table>
+          <div id="noResultsState" class="empty-state-box hidden">
+            <p id="noResultsText">No matching pages found for the current search/filter.</p>
+          </div>
+        </div>
+
+        <!-- Pagination Controls (Task 17) -->
+        <div class="pagination-bar">
+          <div class="pagination-info" id="paginationInfo">Showing 0–0 of 0 pages</div>
+
+          <div class="pagination-actions">
+            <div class="per-page-selector">
+              <label for="perPageSelect">Rows per page:</label>
+              <select id="perPageSelect">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="page-nav">
+              <button id="prevPageBtn" class="nav-btn" type="button" disabled>‹ Previous</button>
+              <div id="pageNumbers" class="page-numbers"></div>
+              <button id="nextPageBtn" class="nav-btn" type="button" disabled>Next ›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Failed Pages Section -->
+      <section id="workspaceFailedSection" class="failed-section hidden">
+        <div class="failed-header" id="workspaceFailedToggle">
+          <span id="failedHeading">Pages that could not be scanned (0)</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div id="workspaceFailedList" class="failed-list-body hidden"></div>
+      </section>
+    </main>
+
+    <div id="toastHost" class="toast-host" role="status" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="results.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SiteFind</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <img class="topbar__mark" src="icons/icon48.png" alt="" width="28" height="28" />
+        <div class="topbar__text">
+          <h1 class="topbar__title">SiteFind</h1>
+          <p id="siteHostBadge" class="topbar__host">Detecting website…</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <button id="floatWidgetBtn" class="iconbtn" type="button" title="Open as a floating panel on the page" aria-label="Open as a floating panel on the page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" />
+          </svg>
+        </button>
+        <button id="historyBtn" class="iconbtn" type="button" title="Scan history" aria-label="Scan history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3v5h5" /><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" /><path d="M12 7v5l4 2" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="views" class="views">
+      <!-- ============================ SETUP ============================ -->
+      <section id="view-setup" class="view">
+        <div class="view__body">
+          <div id="onboardingCard" class="callout callout--intro hidden">
+            <div class="callout__body">
+              <p class="callout__title">Find what should have changed</p>
+              <ol class="callout__steps">
+                <li>Enter the old email, phone or wording.</li>
+                <li>Choose this page or the whole site.</li>
+                <li>Scan, fix, then <strong>Verify</strong>.</li>
+              </ol>
+            </div>
+            <button type="button" id="dismissOnboardingBtn" class="btn btn--ghost btn--sm">Got it</button>
+          </div>
+
+          <section class="field">
+            <div class="field__head">
+              <h2 class="field__label" id="searchLabel">Search for</h2>
+              <button id="clearTermsBtn" class="btn btn--ghost btn--sm" type="button" title="Remove all search terms">Clear all</button>
+            </div>
+
+            <div id="termList" class="terms" role="group" aria-labelledby="searchLabel"></div>
+
+            <button id="addTermBtn" class="btn btn--ghost btn--sm btn--block" type="button">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              Add another term
+            </button>
+
+            <div class="chips" id="presets" aria-label="Quick add">
+              <button class="chip" data-preset="email" type="button">Email</button>
+              <button class="chip" data-preset="phone" type="button">Phone</button>
+              <button class="chip" data-preset="domain" type="button">Domain</button>
+              <button class="chip" data-preset="company" type="button">Company</button>
+              <button class="chip" data-preset="address" type="button">Address</button>
+              <button class="chip" data-preset="custom" type="button">Custom</button>
+            </div>
+          </section>
+
+          <section id="suggestionsSection" class="panel">
+            <div class="panel__head">
+              <div class="panel__text">
+                <p class="panel__title">Detect from this page</p>
+                <p id="suggestionsHint" class="panel__hint">SiteFind reads the page only when you ask.</p>
+              </div>
+              <button type="button" id="detectSuggestionsBtn" class="btn btn--secondary btn--sm">Detect</button>
+            </div>
+            <div id="suggestionsList" class="suggestions"></div>
+          </section>
+
+          <section class="field">
+            <h2 class="field__label">Scope</h2>
+            <div class="options" role="radiogroup" aria-label="Scan scope">
+              <label class="option">
+                <input type="radio" name="scope" value="current_page" checked />
+                <span class="option__body">
+                  <span class="option__title">Current page</span>
+                  <span id="currentPageHint" class="option__hint">Scans the active tab only</span>
+                </span>
+              </label>
+              <label class="option">
+                <input type="radio" name="scope" value="entire_site" />
+                <span class="option__body">
+                  <span class="option__title">Entire website</span>
+                  <span class="option__hint">Crawls internal pages on this domain</span>
+                </span>
+              </label>
+            </div>
+
+            <div id="maxPagesRow" class="inline-field hidden">
+              <label for="maxPages">Page limit</label>
+              <select id="maxPages" class="select select--sm">
+                <option value="50">50 pages</option>
+                <option value="100">100 pages</option>
+                <option value="250">250 pages</option>
+                <option value="500" selected>500 pages</option>
+                <option value="1000">1000 pages</option>
+              </select>
+            </div>
+
+            <p id="permissionNote" class="callout callout--info hidden">
+              Chrome will ask once for permission to read this domain. Nothing leaves your device.
+            </p>
+          </section>
+
+          <p id="setupError" class="callout callout--danger hidden" role="alert"></p>
+        </div>
+
+        <footer class="actionbar">
+          <button id="scanBtn" class="btn btn--primary btn--block" type="button">Scan this page</button>
+          <p id="scanHint" class="actionbar__hint">Press Enter to scan</p>
+        </footer>
+      </section>
+
+      <!-- =========================== PROGRESS =========================== -->
+      <section id="view-progress" class="view hidden">
+        <div class="view__body">
+          <div class="progress">
+            <div class="progress__head">
+              <div>
+                <p class="progress-title">Scanning…</p>
+                <p id="progressElapsed" class="progress__meta">0s elapsed</p>
+              </div>
+              <div class="progress__right">
+                <span id="progressStatusText" class="badge badge--info">In progress</span>
+                <span id="progressPctText" class="progress__pct">0%</span>
+              </div>
+            </div>
+
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+              <div class="bar__fill" id="progressFill" style="width:0%"></div>
+            </div>
+
+            <p class="progress__url"><span id="progressCurrentUrl">Starting…</span></p>
+
+            <dl class="stats" aria-live="polite">
+              <div class="stat"><dt>Scanned</dt><dd id="statScanned">0</dd></div>
+              <div class="stat"><dt>Discovered</dt><dd id="statDiscovered">0</dd></div>
+              <div class="stat"><dt>Matches</dt><dd id="statMatches">0</dd></div>
+              <div class="stat"><dt>Elements</dt><dd id="statElements">0</dd></div>
+              <div class="stat"><dt>Failed</dt><dd id="statFailed">0</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <footer class="actionbar">
+          <button id="stopScanBtn" class="btn btn--secondary btn--block" type="button">Stop scan</button>
+        </footer>
+      </section>
+
+      <!-- ============================ RESULTS ============================ -->
+      <section id="view-results" class="view hidden">
+        <div class="view__body">
+          <div class="results__head">
+            <button id="topBackBtn" class="btn btn--ghost btn--sm" type="button">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+              Back
+            </button>
+            <div class="results__head-right">
+              <span id="resultsStatusBadge" class="badge badge--warn">Needs attention</span>
+              <button id="openFullResultsBtn" class="btn btn--ghost btn--sm" type="button">Workspace ↗</button>
+            </div>
+          </div>
+
+          <div id="resultsSummary" class="summary"></div>
+          <div id="comparisonBlock" class="hidden"></div>
+
+          <div class="toolbar">
+            <div class="searchfield">
+              <svg class="searchfield__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" /></svg>
+              <input type="text" id="resultsSearchInput" class="input input--search" placeholder="Filter pages or matched text" aria-label="Filter results" />
+            </div>
+            <div class="toolbar__row">
+              <div class="segmented" role="radiogroup" aria-label="Which pages to show">
+                <button type="button" id="toggleAffectedOnly" class="segmented__item is-active">Affected <span id="affectedCountBadge" class="segmented__count">0</span></button>
+                <button type="button" id="toggleAllPages" class="segmented__item">All <span id="allCountBadge" class="segmented__count">0</span></button>
+              </div>
+              <select id="termFilterSelect" class="select select--sm" aria-label="Filter by search term">
+                <option value="">All terms</option>
+              </select>
+            </div>
+          </div>
+
+          <p id="resultsCountLine" class="results__count"></p>
+
+          <ul id="matchList" class="matches"></ul>
+
+          <div id="tableEmptyState" class="empty hidden">
+            <p class="empty__title">No matching results</p>
+            <p class="empty__sub">Clear the filter or switch to <strong>All</strong>.</p>
+          </div>
+
+          <div id="failedBlock" class="disclosure hidden">
+            <button class="disclosure__toggle" id="failedToggle" type="button" aria-expanded="false">
+              <span id="failedToggleLabel">Pages that could not be scanned (0)</span>
+              <svg class="icon disclosure__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div id="failedList" class="disclosure__body hidden"></div>
+          </div>
+        </div>
+
+        <footer class="actionbar actionbar--split">
+          <button id="verifyAgainBtn" class="btn btn--primary" type="button">Verify again</button>
+          <div class="actionbar__group">
+            <button id="copyUrlsBtn" class="btn btn--ghost btn--sm" type="button" title="Copy the listed page URLs">Copy URLs</button>
+            <button id="exportCsvBtn" class="btn btn--ghost btn--sm" type="button">CSV</button>
+            <button id="exportJsonBtn" class="btn btn--ghost btn--sm" type="button">JSON</button>
+          </div>
+          <button id="newScanBtn" class="hidden" type="button" aria-hidden="true"></button>
+        </footer>
+      </section>
+
+      <!-- ============================ HISTORY ============================ -->
+      <section id="view-history" class="view hidden">
+        <div class="view__body">
+          <div class="results__head">
+            <button id="backFromHistoryBtn" class="btn btn--ghost btn--sm" type="button">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+              Back
+            </button>
+            <button id="clearHistoryBtn" class="btn btn--ghost btn--sm btn--danger-text hidden" type="button">Clear history</button>
+          </div>
+
+          <h2 class="field__label">Scan history</h2>
+          <div id="historyList" class="history"></div>
+          <div id="historyEmpty" class="empty hidden">
+            <p class="empty__title">No scans yet</p>
+            <p class="empty__sub">Your completed scans will be listed here.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toastHost" class="toasts" role="status" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

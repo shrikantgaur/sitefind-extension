@@ -1,0 +1,11 @@
+{
+  "name": "sitefind-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SiteFind \u2014 Chrome MV3 extension that finds outdated text across a whole website and verifies fixes.",
+  "scripts": {
+    "test": "node test/run_tests.js",
+    "build": "node scripts/build.js"
+  }
+}
